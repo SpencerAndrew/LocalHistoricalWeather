@@ -268,6 +268,17 @@
         function renderTempChart(data) {
             const ctx = document.getElementById('tempChart').getContext('2d');
             
+            // Extract arrays for Chart.js
+            const labels = [];
+            const highs = [];
+            const lows = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                labels.push(data[i].month);
+                highs.push(data[i].high);
+                lows.push(data[i].low);
+            }
+            
             // Create gradients for lines
             const highGradient = ctx.createLinearGradient(0, 0, 0, 400);
             highGradient.addColorStop(0, 'rgba(239, 68, 68, 0.2)'); // Red
@@ -280,11 +291,11 @@
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: data.map(d => d.month),
+                    labels: labels,
                     datasets: [
                         {
                             label: 'Avg High (°F)',
-                            data: data.map(d => d.high),
+                            data: highs,
                             borderColor: '#ef4444', // red-500
                             backgroundColor: highGradient,
                             borderWidth: 3,
@@ -298,7 +309,7 @@
                         },
                         {
                             label: 'Avg Low (°F)',
-                            data: data.map(d => d.low),
+                            data: lows,
                             borderColor: '#3b82f6', // blue-500
                             backgroundColor: lowGradient,
                             borderWidth: 3,
@@ -347,13 +358,20 @@
         function renderPrecipChart(data) {
             const ctx = document.getElementById('precipChart').getContext('2d');
             
+            const labels = [];
+            const precip = [];
+            for (let i = 0; i < data.length; i++) {
+                labels.push(data[i].month);
+                precip.push(data[i].precip);
+            }
+            
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.map(d => d.month),
+                    labels: labels,
                     datasets: [{
                         label: 'Precipitation (in)',
-                        data: data.map(d => d.precip),
+                        data: precip,
                         backgroundColor: '#14b8a6', // teal-500
                         borderRadius: 6,
                         borderSkipped: false
@@ -384,13 +402,20 @@
         function renderSnowChart(data) {
             const ctx = document.getElementById('snowChart').getContext('2d');
             
+            const labels = [];
+            const snow = [];
+            for (let i = 0; i < data.length; i++) {
+                labels.push(data[i].month);
+                snow.push(data[i].snow);
+            }
+            
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.map(d => d.month),
+                    labels: labels,
                     datasets: [{
                         label: 'Snowfall (in)',
-                        data: data.map(d => d.snow),
+                        data: snow,
                         backgroundColor: '#93c5fd', // blue-300
                         borderRadius: 6,
                         borderSkipped: false
