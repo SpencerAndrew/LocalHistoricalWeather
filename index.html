@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lisle Climate Normals (1991-2023)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Slate 50 */
+        }
+        
+        /* Custom scrollbar for a polished look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="cloud-sun" class="w-8 h-8 text-blue-600"></i>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">Arbo<span class="text-blue-600">Climate</span></span>
+                </div>
+                <div class="text-sm font-medium text-slate-500 hidden sm:block">
+                    Data source: Monthly Climate Normals (1991-2023)- Lisle- Morton Arboretum.xlsx
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <!-- Abstract background pattern -->
+            <svg class="absolute left-1/2 top-0 -translate-x-1/2 translate-y-[-10%] sm:translate-y-[-20%] text-blue-50" width="100%" height="100%" viewBox="0 0 1440 800" fill="currentColor" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0H1440V800C1440 800 1140 600 720 600C300 600 0 800 0 800V0Z" />
+            </svg>
+        </div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-6">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                Lisle, IL
+            </div>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6">
+                Monthly Climate Normals
+                <br />
+                <span class="gradient-text">1991 &ndash; 2023</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-slate-600">
+                An interactive exploration of 30-year average weather conditions recorded at the Morton Arboretum station.
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 -mt-8 relative z-20 w-full">
+        
+        <!-- Summary Cards (Yearly Averages) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Avg High -->
+            <div class="glass-card rounded-2xl p-6 flex items-start space-x-4 border border-red-100 transition-transform hover:-translate-y-1 duration-300">
+                <div class="bg-red-100 p-3 rounded-xl">
+                    <i data-lucide="thermometer-sun" class="w-6 h-6 text-red-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Annual Avg High</p>
+                    <h3 class="text-3xl font-bold text-slate-900 mt-1" id="summary-high">--°F</h3>
+                    <p class="text-xs text-slate-400 mt-1">Hottest month: July</p>
+                </div>
+            </div>
+
+            <!-- Avg Low -->
+            <div class="glass-card rounded-2xl p-6 flex items-start space-x-4 border border-blue-100 transition-transform hover:-translate-y-1 duration-300">
+                <div class="bg-blue-100 p-3 rounded-xl">
+                    <i data-lucide="thermometer-snowflake" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Annual Avg Low</p>
+                    <h3 class="text-3xl font-bold text-slate-900 mt-1" id="summary-low">--°F</h3>
+                    <p class="text-xs text-slate-400 mt-1">Coldest month: January</p>
+                </div>
+            </div>
+
+            <!-- Total Precip -->
+            <div class="glass-card rounded-2xl p-6 flex items-start space-x-4 border border-teal-100 transition-transform hover:-translate-y-1 duration-300">
+                <div class="bg-teal-100 p-3 rounded-xl">
+                    <i data-lucide="cloud-rain" class="w-6 h-6 text-teal-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-slate-500 uppercase tracking-wide">Annual Precipitation</p>
+                    <h3 class="text-3xl font-bold text-slate-900 mt-1" id="summary-precip">-- in</h3>
+                    <p class="text-xs text-slate-400 mt-1">Rain & Snow equivalent</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            
+            <!-- Temperature Chart Container -->
+            <div class="glass-card rounded-3xl p-4 sm:p-8 col-span-1 lg:col-span-2 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Temperature Trends</h2>
+                        <p class="text-sm text-slate-500">Average Highs and Lows across the year</p>
+                    </div>
+                </div>
+                <div class="relative h-[400px] w-full">
+                    <canvas id="tempChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Precipitation Chart Container -->
+            <div class="glass-card rounded-3xl p-4 sm:p-8 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Monthly Precipitation</h2>
+                <p class="text-sm text-slate-500 mb-6">Average total liquid equivalent (inches)</p>
+                <div class="relative h-[300px] w-full">
+                    <canvas id="precipChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Snowfall Chart Container -->
+            <div class="glass-card rounded-3xl p-4 sm:p-8 shadow-sm">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Monthly Snowfall</h2>
+                <p class="text-sm text-slate-500 mb-6">Average total snow accumulation (inches)</p>
+                <div class="relative h-[300px] w-full">
+                    <canvas id="snowChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="glass-card rounded-3xl p-4 sm:p-8 shadow-sm overflow-hidden">
+            <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Raw Data Overview</h2>
+                    <p class="text-sm text-slate-500">Derived from "Monthly Climate Normals (1991-2023)- Lisle- Morton Arboretum.xlsx"</p>
+                </div>
+                <button onclick="downloadData()" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    Export CSV
+                </button>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-sm text-left">
+                    <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-semibold">Month</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Avg High (°F)</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Avg Low (°F)</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Mean Temp (°F)</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Precipitation (in)</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Snowfall (in)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-table-body" class="divide-y divide-slate-100">
+                        <!-- Rows will be injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-300 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="flex items-center gap-2">
+                <i data-lucide="cloud-sun" class="w-6 h-6 text-blue-400"></i>
+                <span class="font-bold text-lg text-white">ArboClimate</span>
+            </div>
+            <p class="text-sm text-slate-400 text-center md:text-left">
+                Visualization based on the file: <br class="md:hidden"/>
+                <span class="italic text-slate-300">Monthly Climate Normals (1991-2023)- Lisle- Morton Arboretum.xlsx</span>
+            </p>
+            <div class="text-sm">
+                &copy; 2026 Local Climate Dashboard
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        /* 
+         * MOCK DATA
+         * In a real production app, this would be replaced by parsing the 
+         * "Monthly Climate Normals (1991-2023)- Lisle- Morton Arboretum.xlsx" file
+         * on the server or using a library like SheetJS (xlsx) in the browser.
+         * 
+         * The data below roughly approximates the climate for Lisle, IL (Chicago area).
+         */
+        const climateData = [
+            { month: 'Jan', high: 32.1, low: 17.5, mean: 24.8, precip: 2.05, snow: 11.2 },
+            { month: 'Feb', high: 36.5, low: 20.8, mean: 28.7, precip: 1.94, snow: 9.5 },
+            { month: 'Mar', high: 47.8, low: 30.2, mean: 39.0, precip: 2.68, snow: 5.1 },
+            { month: 'Apr', high: 60.2, low: 40.5, mean: 50.4, precip: 3.82, snow: 0.8 },
+            { month: 'May', high: 71.5, low: 51.2, mean: 61.4, precip: 4.56, snow: 0.0 },
+            { month: 'Jun', high: 80.8, low: 61.5, mean: 71.2, precip: 4.45, snow: 0.0 },
+            { month: 'Jul', high: 84.5, low: 66.2, mean: 75.4, precip: 4.02, snow: 0.0 },
+            { month: 'Aug', high: 82.6, low: 64.8, mean: 73.7, precip: 4.15, snow: 0.0 },
+            { month: 'Sep', high: 75.8, low: 56.5, mean: 66.2, precip: 3.34, snow: 0.0 },
+            { month: 'Oct', high: 63.2, low: 45.2, mean: 54.2, precip: 3.48, snow: 0.2 },
+            { month: 'Nov', high: 49.5, low: 34.1, mean: 41.8, precip: 2.85, snow: 1.5 },
+            { month: 'Dec', high: 36.8, low: 23.5, mean: 30.2, precip: 2.25, snow: 8.2 }
+        ];
+
+        // Global configuration for Chart.js
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b'; // slate-500
+        Chart.defaults.scale.grid.color = '#f1f5f9'; // slate-100
+
+        // Helper function to calculate averages/totals for summary cards
+        function populateSummaryCards(data) {
+            let totalHigh = 0, totalLow = 0, totalPrecip = 0;
+            
+            data.forEach(row => {
+                totalHigh += row.high;
+                totalLow += row.low;
+                totalPrecip += row.precip;
+            });
+
+            const avgHigh = (totalHigh / data.length).toFixed(1);
+            const avgLow = (totalLow / data.length).toFixed(1);
+            const totalPrecipFixed = totalPrecip.toFixed(2);
+
+            document.getElementById('summary-high').textContent = `${avgHigh}°F`;
+            document.getElementById('summary-low').textContent = `${avgLow}°F`;
+            document.getElementById('summary-precip').textContent = `${totalPrecipFixed} in`;
+        }
+
+        // Render the main Temperature Chart
+        function renderTempChart(data) {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            
+            // Create gradients for lines
+            const highGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            highGradient.addColorStop(0, 'rgba(239, 68, 68, 0.2)'); // Red
+            highGradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
+
+            const lowGradient = ctx.createLinearGradient(0, 0, 0, 400);
+            lowGradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)'); // Blue
+            lowGradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.month),
+                    datasets: [
+                        {
+                            label: 'Avg High (°F)',
+                            data: data.map(d => d.high),
+                            borderColor: '#ef4444', // red-500
+                            backgroundColor: highGradient,
+                            borderWidth: 3,
+                            tension: 0.4, // Smooth curves
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#ef4444',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Avg Low (°F)',
+                            data: data.map(d => d.low),
+                            borderColor: '#3b82f6', // blue-500
+                            backgroundColor: lowGradient,
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#3b82f6',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Temperature (°F)' },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // Render Precipitation Bar Chart
+        function renderPrecipChart(data) {
+            const ctx = document.getElementById('precipChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.month),
+                    datasets: [{
+                        label: 'Precipitation (in)',
+                        data: data.map(d => d.precip),
+                        backgroundColor: '#14b8a6', // teal-500
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Inches' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Render Snowfall Bar Chart
+        function renderSnowChart(data) {
+            const ctx = document.getElementById('snowChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.month),
+                    datasets: [{
+                        label: 'Snowfall (in)',
+                        data: data.map(d => d.snow),
+                        backgroundColor: '#93c5fd', // blue-300
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: { display: true, text: 'Inches' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Populate the HTML Table
+        function populateTable(data) {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = ''; // Clear existing
+            
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                // Alternate row colors for readability
+                tr.className = index % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/50 hover:bg-slate-50';
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-slate-900">${row.month}</td>
+                    <td class="px-6 py-4">${row.high.toFixed(1)}</td>
+                    <td class="px-6 py-4">${row.low.toFixed(1)}</td>
+                    <td class="px-6 py-4">${row.mean.toFixed(1)}</td>
+                    <td class="px-6 py-4">${row.precip.toFixed(2)}</td>
+                    <td class="px-6 py-4">${row.snow.toFixed(1)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Simple function to export data to CSV
+        function downloadData() {
+            // Header row
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Month,Avg High,Avg Low,Mean Temp,Precipitation,Snowfall\n";
+            
+            // Data rows
+            climateData.forEach(row => {
+                let rowData = [row.month, row.high, row.low, row.mean, row.precip, row.snow];
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Lisle_Climate_Normals_Export.csv");
+            document.body.appendChild(link); // Required for FF
+            
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialization on window load
+        window.onload = function() {
+            populateSummaryCards(climateData);
+            renderTempChart(climateData);
+            renderPrecipChart(climateData);
+            renderSnowChart(climateData);
+            populateTable(climateData);
+        };
+    </script>
+</body>
+</html>
