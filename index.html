@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
     <style>
         body {
@@ -226,11 +226,7 @@
 
     <!-- Application Logic -->
     <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
-
-        /* 
-         * MOCK DATA
+        /* * MOCK DATA
          * In a real production app, this would be replaced by parsing the 
          * "Monthly Climate Normals (1991-2023)- Lisle- Morton Arboretum.xlsx" file
          * on the server or using a library like SheetJS (xlsx) in the browser.
@@ -249,17 +245,12 @@
             { month: 'Sep', high: 75.8, low: 56.5, mean: 66.2, precip: 3.34, snow: 0.0 },
             { month: 'Oct', high: 63.2, low: 45.2, mean: 54.2, precip: 3.48, snow: 0.2 },
             { month: 'Nov', high: 49.5, low: 34.1, mean: 41.8, precip: 2.85, snow: 1.5 },
-            { month: 'Dec', high: 36.8, low: 23.5, mean: 30.2, precip: 2.25, snow: 8.2 }
-        ];
+        { month: 'Dec', high: 36.8, low: 23.5, mean: 30.2, precip: 2.25, snow: 8.2 }
+    ];
 
-        // Global configuration for Chart.js
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#64748b'; // slate-500
-        Chart.defaults.scale.grid.color = '#f1f5f9'; // slate-100
-
-        // Helper function to calculate averages/totals for summary cards
-        function populateSummaryCards(data) {
-            let totalHigh = 0, totalLow = 0, totalPrecip = 0;
+    // Helper function to calculate averages/totals for summary cards
+    function populateSummaryCards(data) {
+        let totalHigh = 0, totalLow = 0, totalPrecip = 0;
             
             data.forEach(row => {
                 totalHigh += row.high;
@@ -464,24 +455,42 @@
             });
 
             // Create download link
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "Lisle_Climate_Normals_Export.csv");
-            document.body.appendChild(link); // Required for FF
-            
-            link.click();
-            document.body.removeChild(link);
-        }
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Lisle_Climate_Normals_Export.csv");
+        document.body.appendChild(link); // Required for FF
+        
+        link.click();
+        document.body.removeChild(link);
+    }
 
-        // Initialization on window load
-        window.onload = function() {
-            populateSummaryCards(climateData);
+    // Initialization on window DOM loaded
+    window.addEventListener('DOMContentLoaded', function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+
+    // Initialization on window load (waits for external scripts like Chart.js)
+    window.addEventListener('load', function() {
+        // Global configuration for Chart.js safely inside the load event
+        if (typeof Chart !== 'undefined') {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b'; // slate-500
+            Chart.defaults.scale.grid.color = '#f1f5f9'; // slate-100
+            
             renderTempChart(climateData);
             renderPrecipChart(climateData);
             renderSnowChart(climateData);
-            populateTable(climateData);
-        };
-    </script>
+        } else {
+            console.error("Chart.js failed to load. Please check your internet connection or the CDN link.");
+        }
+        
+        // Populate standard DOM elements regardless of Chart.js status
+        populateSummaryCards(climateData);
+        populateTable(climateData);
+    });
+</script>
 </body>
 </html>
